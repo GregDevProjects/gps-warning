@@ -55,3 +55,6 @@ web-build/
 
 # other
 tmpnodejsnpm-cache/
+
+# environment variables
+.env

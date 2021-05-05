@@ -5,8 +5,9 @@
     "name": "blank_react_naitive",
     "slug": "blank_react_naitive",
     "version": "1.0.0",
-    "assetBundlePatterns": [
-      "**/*"
-    ]
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "com.tap.gpswarning"
+    }
   }
 }

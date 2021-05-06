@@ -1,5 +1,5 @@
 //https://github.com/react-native-maps/react-native-maps/blob/master/docs/installation.md MAP INSTALL
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Platform, Text, View, StyleSheet, Button } from "react-native";
 import * as Location from "expo-location";
 import isLocationPermissionGiven from "./src/isLocationPermissionGiven";
@@ -8,23 +8,18 @@ import * as TaskManager from "expo-task-manager";
 import { LocationGeofencingEventType } from "expo-location";
 import MapView from "react-native-maps";
 import { Circle } from "react-native-maps";
-import PushNotification from "react-native-push-notification";
+import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
 
-console.log("main invoked");
-
-PushNotification.createChannel(
-  {
-    channelId: "channel-id", // (required)
-    channelName: "My channel", // (required)
-    channelDescription: "A channel to categorise your notifications", // (optional) default: undefined.
-    playSound: false, // (optional) default: true
-    soundName: "default", // (optional) See `soundName` parameter of `localNotification` function
-    importance: 4, // (optional) default: 4. Int value of the Android notification importance
-    vibrate: true, // (optional) default: true. Creates the default vibration patten if true.
+Notifications.setNotificationHandler({
+  handleNotification: async () => {
+    return {
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    };
   },
-  (created) => console.log(`createChannel returned '${created}'`) // (optional) callback returns whether the channel was created, false means it already existed.
-);
-
+});
 //TODO: TEST DIFFERENT ACCURACY'S AND BATTERY POWER
 TaskManager.defineTask("LOCATION_POLL", ({ data: { locations }, error }) => {
   if (error) {
@@ -36,8 +31,6 @@ TaskManager.defineTask("LOCATION_POLL", ({ data: { locations }, error }) => {
 
 const TASK_NAME = "IN_GEOFENCE";
 
-const CHANNEL_ID = "channel-id";
-
 TaskManager.defineTask(TASK_NAME, ({ data: { eventType, region }, error }) => {
   if (error) {
     console.error(error.message);
@@ -47,28 +40,79 @@ TaskManager.defineTask(TASK_NAME, ({ data: { eventType, region }, error }) => {
 
   if (eventType === LocationGeofencingEventType.Enter) {
     console.log(`You've entered region: ${region.identifier}`);
-    PushNotification.localNotification({
-      channelId: CHANNEL_ID,
-      title: "WARNING",
-      message: `You've entered region: ${region.identifier}`,
-    });
+    const content = { title: `You've entered region: ${region.identifier}` };
+    Notifications.scheduleNotificationAsync({ content, trigger: null });
   } else if (eventType === LocationGeofencingEventType.Exit) {
     console.log(`You've left region: ${region.identifier}`);
+    // const content = { title: `You've left region: ${region.identifier}` };
+    // Notifications.scheduleNotificationAsync({ content, trigger: null });
   }
 });
+
+registerForPushNotificationsAsync = async () => {
+  if (Constants.isDevice) {
+    const {
+      status: existingStatus,
+    } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== "granted") {
+      alert("Failed to get push token for push notification!");
+      return;
+    }
+    const token = (await Notifications.getExpoPushTokenAsync()).data;
+    console.log(token);
+    this.setState({ expoPushToken: token });
+  } else {
+    alert("Must use physical device for Push Notifications");
+  }
+
+  if (Platform.OS === "android") {
+    Notifications.setNotificationChannelAsync("default", {
+      name: "default",
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: "#FF231F7C",
+    });
+  }
+};
 
 export default function App() {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
-
+  const [expoPushToken, setExpoPushToken] = useState("");
   const [buttonText, setButtonText] = useState("Check geofencing status");
   const [tasks, setTasks] = useState("Tasks displayed here");
   const [initialPosition, setInitialPosition] = useState(undefined);
 
+  const notificationListener = useRef();
+  const responseListener = useRef();
+
   useEffect(() => {
     (async () => {
+      //START PUSH CODE
+      registerForPushNotificationsAsync().then((token) =>
+        setExpoPushToken(token)
+      );
+
+      // This listener is fired whenever a notification is received while the app is foregrounded
+      notificationListener.current = Notifications.addNotificationReceivedListener(
+        (notification) => {
+          console.log("foreground push received ");
+        }
+      );
+
+      // This listener is fired whenever a user taps on or interacts with a notification (works when app is foregrounded, backgrounded, or killed)
+      responseListener.current = Notifications.addNotificationResponseReceivedListener(
+        (response) => {
+          console.log("background push received ");
+        }
+      );
+      //END PUSH CODE
       let permissionsGiven = await isLocationPermissionGiven();
-      let tasks = undefined;
       if (!permissionsGiven) {
         setErrorMsg("Permission not granted!");
         return;
@@ -106,6 +150,12 @@ export default function App() {
           },
         });
       }
+      return () => {
+        Notifications.removeNotificationSubscription(
+          notificationListener.current
+        );
+        Notifications.removeNotificationSubscription(responseListener.current);
+      };
     })();
   }, []);
 
@@ -131,12 +181,9 @@ export default function App() {
       <Text style={styles.paragraph}>{tasks}</Text>
       <Button
         onPress={async () => {
-          PushNotification.localNotification({
-            channelId: CHANNEL_ID,
-            title: "title",
-            message: "message",
-          });
+          const content = { title: "I am a one, hasty notification." };
 
+          Notifications.scheduleNotificationAsync({ content, trigger: null });
           const isGeoFencing = await Location.hasStartedGeofencingAsync(
             TASK_NAME
           );

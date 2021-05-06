@@ -3,7 +3,7 @@ const regions = [
     identifier: "home",
     latitude: 44.6618, //44.66821413533673,
     longitude: -63.6006, //-63.6072027683258,
-    radius: 20,
+    radius: 30,
     notifyOnEnter: true,
     notifyOnExit: true,
   },

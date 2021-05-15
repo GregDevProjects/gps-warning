@@ -44,7 +44,7 @@ const GeofenceWatch = ({ style, dangerousLocations }) => {
   );
 };
 
-export default function Map() {
+export default function Map({ route, navigation }) {
   const [initialPosition, setInitialPosition] = useState(undefined);
   const [dangerousLocations, setDangerousLocations] = useState([]);
   useEffect(() => {
@@ -110,8 +110,9 @@ export default function Map() {
                 latitude: item.latitude,
                 longitude: item.longitude,
               }}
-              onPress={(event) => {
+              onPress={() => {
                 console.log("Marker Pressed", item);
+                navigation.navigate("DangerousLocation", item);
               }}
             >
               <View>

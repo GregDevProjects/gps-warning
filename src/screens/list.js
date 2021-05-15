@@ -20,7 +20,6 @@ const List = ({ navigation }) => {
   useEffect(() => {
     (async () => {
       const parsedData = await getAllPointsOfInterest();
-      // console.log(parsedData);
       setPointOfInterests(parsedData);
     })();
   }, []);
@@ -29,8 +28,7 @@ const List = ({ navigation }) => {
     return (
       <Pressable
         onPress={() => {
-          //   console.log(item.key);
-          //PRESS HANDLER GOES HERE
+          console.log(item);
           navigation.navigate("PointOfInterest", item);
         }}
         style={({ pressed }) => [
@@ -47,13 +45,7 @@ const List = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={pointOfInterests}
-        onPress={(item) => {
-          console.log(item);
-        }}
-        renderItem={renderListItem}
-      />
+      <FlatList data={pointOfInterests} renderItem={renderListItem} />
     </View>
   );
 };

@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import DebugScreen from "./src/screens/debug";
 import ListScreen from "./src/screens/list";
 import PointOfInterestScreen from "./src/screens/point_of_interest";
+import DangerousLocationScreen from "./src/screens/dangerous_location";
 import { createStackNavigator } from "@react-navigation/stack";
 import MapScreen from "./src/screens/map";
 
@@ -30,7 +31,7 @@ function MyTabs() {
         name="List"
         component={ListScreen}
         options={{
-          tabBarLabel: "List",
+          tabBarLabel: "Points of interest",
           tabBarIcon: ({ color, size }) => (
             <FontAwesome5 name="list" size={size} color={color} />
           ),
@@ -54,10 +55,14 @@ export default function App() {
   return (
     <NavigationContainer>
       <RootStack.Navigator>
-        <RootStack.Screen name="Home" component={MyTabs} />
+        <RootStack.Screen name="TAP Prototype" component={MyTabs} />
         <RootStack.Screen
           name="PointOfInterest"
           component={PointOfInterestScreen}
+        />
+        <RootStack.Screen
+          name="DangerousLocation"
+          component={DangerousLocationScreen}
         />
       </RootStack.Navigator>
     </NavigationContainer>

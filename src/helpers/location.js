@@ -64,8 +64,8 @@ const startLocationUpdatesTask = () => {
   Location.startLocationUpdatesAsync(LOCATION_UPDATE_TASK_NAME, {
     accuracy: Location.LocationAccuracy.BestForNavigation,
     foregroundService: {
-      notificationTitle: "FGS title",
-      notificationBody: "FGS body",
+      notificationTitle: "TAP PROTOTYPE",
+      notificationBody: "Tap prototype is watching for dangerous locations",
     },
   });
 };

@@ -11,7 +11,6 @@ TaskManager.defineTask(
   ({ data: { eventType, region }, error }) => {
     if (error) {
       console.error(error.message);
-      // check `error.message` for more details.
       return;
     }
 
@@ -21,8 +20,6 @@ TaskManager.defineTask(
       sendLocalNotification(content);
     } else if (eventType === LocationGeofencingEventType.Exit) {
       console.log(`You've left region: ${region.identifier}`);
-      // const content = { title: `You've left region: ${region.identifier}` };
-      // Notifications.scheduleNotificationAsync({ content, trigger: null });
     }
   }
 );
@@ -87,9 +84,30 @@ const getCurrentMapPositionAsync = async () => {
   };
 };
 
+const stopAllLocationTasksAsync = async () => {
+  try {
+    await Location.stopGeofencingAsync(GEOFENCE_TASK_NAME);
+  } catch (err) {
+    console.log(err);
+  }
+
+  try {
+    await Location.stopLocationUpdatesAsync(LOCATION_UPDATE_TASK_NAME);
+  } catch (err) {
+    console.log(err);
+  }
+
+  try {
+    await TaskManager.unregisterAllTasksAsync();
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 export {
   isLocationPermissionGiven,
   startLocationUpdatesTask,
   startGeofencingTask,
   getCurrentMapPositionAsync,
+  stopAllLocationTasksAsync,
 };

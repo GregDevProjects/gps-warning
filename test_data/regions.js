@@ -31,6 +31,14 @@ const regions = [
     notifyOnEnter: true,
     notifyOnExit: true,
   },
+  {
+    identifier: "Rinaldo's",
+    latitude: 44.65016235801059, //44.66821413533673,
+    longitude: -63.59539325747267, //-63.6072027683258,
+    radius: 50,
+    notifyOnEnter: true,
+    notifyOnExit: true,
+  },
 ];
 
 export default regions;

@@ -5,6 +5,9 @@ import { LocationGeofencingEventType } from "expo-location";
 
 const GEOFENCE_TASK_NAME = "IN_GEOFENCE";
 const LOCATION_UPDATE_TASK_NAME = "LOCATION_POLL";
+const BACKGROUND_TASK_TITLE = "TAP PROTOTYPE";
+const BACKGROUND_TASK_BODY =
+  "Tap prototype is watching for dangerous locations";
 
 TaskManager.defineTask(
   GEOFENCE_TASK_NAME,
@@ -64,8 +67,8 @@ const startLocationUpdatesTask = () => {
   Location.startLocationUpdatesAsync(LOCATION_UPDATE_TASK_NAME, {
     accuracy: Location.LocationAccuracy.BestForNavigation,
     foregroundService: {
-      notificationTitle: "TAP PROTOTYPE",
-      notificationBody: "Tap prototype is watching for dangerous locations",
+      notificationTitle: BACKGROUND_TASK_TITLE,
+      notificationBody: BACKGROUND_TASK_BODY,
     },
   });
 };
@@ -104,10 +107,23 @@ const stopAllLocationTasksAsync = async () => {
   }
 };
 
+const isBackgroundTasksInProgressAsync = async () => {
+  const locationUpdatesInProgress = await Location.hasStartedLocationUpdatesAsync(
+    LOCATION_UPDATE_TASK_NAME
+  );
+
+  const geoFenceWatchInProgress = await Location.hasStartedGeofencingAsync(
+    GEOFENCE_TASK_NAME
+  );
+
+  return locationUpdatesInProgress && geoFenceWatchInProgress;
+};
+
 export {
   isLocationPermissionGiven,
   startLocationUpdatesTask,
   startGeofencingTask,
   getCurrentMapPositionAsync,
   stopAllLocationTasksAsync,
+  isBackgroundTasksInProgressAsync,
 };

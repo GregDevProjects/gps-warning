@@ -24,7 +24,7 @@ const parseData = (pointsOfInterestPrismic) => {
 
     const dangerousLocationsParsed = dangerousLocationSlices.map((slice) => {
       return {
-        key: slice.primary.name1, //TODO: GENERATE UNIQUE KEY HERE
+        key: slice.primary.name1, //TODO: GENERATE UNIQUE KEY
         name: slice.primary.name1,
         description: slice.primary.description1[0].text,
         radius: slice.primary.radius,

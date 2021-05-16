@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Platform, Text, View, StyleSheet, Button } from "react-native";
-import regions from "../../test_data/regions";
 import { getAllPointsOfInterest } from "../helpers/prismic";
 
 import {
@@ -8,6 +7,7 @@ import {
   getCurrentMapPositionAsync,
   startLocationUpdatesTask,
   stopAllLocationTasksAsync,
+  isBackgroundTasksInProgressAsync,
 } from "../helpers/location";
 
 import MapView from "react-native-maps";
@@ -15,6 +15,20 @@ import { Circle, Marker } from "react-native-maps";
 
 const GeofenceWatch = ({ style, dangerousLocations }) => {
   const [isWatchingGeoFence, setIsWatchingGeoFence] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      //check if the background tasks are still running from the last app session
+      const isBackgroundTasksInProgress = await isBackgroundTasksInProgressAsync();
+
+      if (isBackgroundTasksInProgress) {
+        setIsWatchingGeoFence(true);
+      } else {
+        stopAllLocationTasksAsync();
+        setIsWatchingGeoFence(false);
+      }
+    })();
+  }, []);
   return (
     <View style={style}>
       <Text>Press the button to start watching dangerous locations.</Text>
@@ -51,19 +65,17 @@ export default function Map({ route, navigation }) {
     (async () => {
       const pointsOfInterest = await getAllPointsOfInterest();
 
-      const allDangerousLocations = pointsOfInterest.map((item) => {
-        const dangerousLocationsWithNotify = item.dangerousLocations.map(
-          (dangerousLocation) => {
-            dangerousLocation.notifyOnEnter = true;
-            dangerousLocation.identifier = dangerousLocation.name;
-            return dangerousLocation;
-          }
-        );
+      const allDangerousLocationsForAllPointsOfInterest = [];
 
-        return dangerousLocationsWithNotify;
+      pointsOfInterest.forEach((item) => {
+        item.dangerousLocations.forEach((dangerousLocation) => {
+          dangerousLocation.notifyOnEnter = true;
+          dangerousLocation.identifier = dangerousLocation.name;
+          allDangerousLocationsForAllPointsOfInterest.push(dangerousLocation);
+        });
       });
 
-      setDangerousLocations(allDangerousLocations[0]);
+      setDangerousLocations(allDangerousLocationsForAllPointsOfInterest);
 
       setInitialPosition(await getCurrentMapPositionAsync());
     })();

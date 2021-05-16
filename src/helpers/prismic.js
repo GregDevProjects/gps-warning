@@ -38,7 +38,7 @@ const parseData = (pointsOfInterestPrismic) => {
       image: item.data.image.url,
       name: item.data.name,
       description: item.data.description[0].text,
-      geoPoint: item.data.location,
+      geoPoint: item.data.geopoint,
       dangerousLocations: dangerousLocationsParsed,
     };
   });

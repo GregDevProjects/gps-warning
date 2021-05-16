@@ -61,10 +61,11 @@ const GeofenceWatch = ({ style, dangerousLocations }) => {
 export default function Map({ route, navigation }) {
   const [initialPosition, setInitialPosition] = useState(undefined);
   const [dangerousLocations, setDangerousLocations] = useState([]);
+  const [pointsOfInterest, setPointsOfInterest] = useState([]);
   useEffect(() => {
     (async () => {
       const pointsOfInterest = await getAllPointsOfInterest();
-
+      setPointsOfInterest(pointsOfInterest);
       const allDangerousLocationsForAllPointsOfInterest = [];
 
       pointsOfInterest.forEach((item) => {
@@ -74,7 +75,6 @@ export default function Map({ route, navigation }) {
           allDangerousLocationsForAllPointsOfInterest.push(dangerousLocation);
         });
       });
-
       setDangerousLocations(allDangerousLocationsForAllPointsOfInterest);
 
       setInitialPosition(await getCurrentMapPositionAsync());
@@ -123,12 +123,27 @@ export default function Map({ route, navigation }) {
                 longitude: item.longitude,
               }}
               onPress={() => {
-                console.log("Marker Pressed", item);
                 navigation.navigate("DangerousLocation", item);
               }}
             >
               <View>
                 <Text style={{ color: "red" }}>{item.name}</Text>
+              </View>
+            </Marker>
+          );
+        })}
+
+        {pointsOfInterest.map((item, index) => {
+          return (
+            <Marker
+              key={index}
+              coordinate={item.geoPoint}
+              onPress={() => {
+                navigation.navigate("PointOfInterest", item);
+              }}
+            >
+              <View>
+                <Text style={{ color: "black" }}>{item.name}</Text>
               </View>
             </Marker>
           );

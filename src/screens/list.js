@@ -27,13 +27,16 @@ const List = ({ navigation }) => {
 
   useEffect(() => {
     (async () => {
+      const unsubscribe = navigation
+        .dangerouslyGetParent()
+        .addListener("tabPress", async (e) => {
+          const parsedData = await getAllPointsOfInterest();
+          setPointOfInterests(parsedData);
+        });
+
       const parsedData = await getAllPointsOfInterest();
-      const lotsOfData = parsedData
-        .concat(parsedData)
-        .concat(parsedData)
-        .concat(parsedData)
-        .concat(parsedData);
-      setPointOfInterests(lotsOfData);
+      setPointOfInterests(parsedData);
+      return unsubscribe;
     })();
   }, []);
 

@@ -8,6 +8,7 @@ import {
   startLocationUpdatesTask,
   stopAllLocationTasksAsync,
   isBackgroundTasksInProgressAsync,
+  isLocationPermissionGiven,
 } from "../helpers/location";
 
 import MapView from "react-native-maps";
@@ -58,26 +59,45 @@ const GeofenceWatch = ({ style, dangerousLocations }) => {
   );
 };
 
-export default function Map({ route, navigation }) {
+const Map = ({ route, navigation }) => {
   const [initialPosition, setInitialPosition] = useState(undefined);
   const [dangerousLocations, setDangerousLocations] = useState([]);
   const [pointsOfInterest, setPointsOfInterest] = useState([]);
+
+  //TODO: clean up
+  const setInitialPositionAndGetAllDangerousLocations = async () => {
+    const pointsOfInterest = await getAllPointsOfInterest();
+    setPointsOfInterest(pointsOfInterest);
+
+    const allDangerousLocationsForAllPointsOfInterest = [];
+
+    pointsOfInterest.forEach((item) => {
+      item.dangerousLocations.forEach((dangerousLocation) => {
+        dangerousLocation.notifyOnEnter = true;
+        dangerousLocation.identifier = dangerousLocation.name;
+        allDangerousLocationsForAllPointsOfInterest.push(dangerousLocation);
+      });
+    });
+    setDangerousLocations(allDangerousLocationsForAllPointsOfInterest);
+
+    let permissionsGiven = await isLocationPermissionGiven();
+
+    if (permissionsGiven) {
+      //TODO: error message if permissions not given
+      setInitialPosition(await getCurrentMapPositionAsync());
+    }
+  };
+
   useEffect(() => {
     (async () => {
-      const pointsOfInterest = await getAllPointsOfInterest();
-      setPointsOfInterest(pointsOfInterest);
-      const allDangerousLocationsForAllPointsOfInterest = [];
-
-      pointsOfInterest.forEach((item) => {
-        item.dangerousLocations.forEach((dangerousLocation) => {
-          dangerousLocation.notifyOnEnter = true;
-          dangerousLocation.identifier = dangerousLocation.name;
-          allDangerousLocationsForAllPointsOfInterest.push(dangerousLocation);
-        });
+      const unsubscribe = navigation.addListener("tabPress", async (e) => {
+        // alert("Got data: use effect");
+        //alert(JSON.stringify(route.params));
       });
-      setDangerousLocations(allDangerousLocationsForAllPointsOfInterest);
+      // alert("Got data: use effect");
 
-      setInitialPosition(await getCurrentMapPositionAsync());
+      setInitialPositionAndGetAllDangerousLocations();
+      return unsubscribe;
     })();
   }, []);
 
@@ -155,4 +175,6 @@ export default function Map({ route, navigation }) {
       ></GeofenceWatch>
     </View>
   );
-}
+};
+
+export default Map;

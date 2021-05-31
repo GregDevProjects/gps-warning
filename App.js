@@ -32,6 +32,7 @@ export default function App() {
         <Tab.Screen
           name="Map"
           component={MapScreen}
+          initialParams={{ initialMapLocation: false }}
           options={{
             tabBarLabel: "Map",
             tabBarIcon: ({ color, size }) => (

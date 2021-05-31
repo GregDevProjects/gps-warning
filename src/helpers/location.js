@@ -8,6 +8,8 @@ const LOCATION_UPDATE_TASK_NAME = "LOCATION_POLL";
 const BACKGROUND_TASK_TITLE = "TAP PROTOTYPE";
 const BACKGROUND_TASK_BODY =
   "Tap prototype is watching for dangerous locations";
+const latitudeDelta = 0.006;
+const longitudeDelta = 0.006;
 
 TaskManager.defineTask(
   GEOFENCE_TASK_NAME,
@@ -79,11 +81,22 @@ const startGeofencingTask = (regions) =>
 const getCurrentMapPositionAsync = async () => {
   const location = await Location.getCurrentPositionAsync();
 
+  return getMapPosition(location.coords.latitude, location.coords.longitude);
+};
+
+/**
+ * Returns a position that's formatted for the react-native-maps MapView
+ *
+ * @param {*} latitude
+ * @param {*} longitude
+ * @return {*}
+ */
+const getMapPosition = (latitude, longitude) => {
   return {
-    latitude: location.coords.latitude,
-    longitude: location.coords.longitude,
-    latitudeDelta: 0.006,
-    longitudeDelta: 0.006,
+    latitude: latitude,
+    longitude: longitude,
+    latitudeDelta: latitudeDelta,
+    longitudeDelta: longitudeDelta,
   };
 };
 
@@ -126,4 +139,5 @@ export {
   getCurrentMapPositionAsync,
   stopAllLocationTasksAsync,
   isBackgroundTasksInProgressAsync,
+  getMapPosition,
 };

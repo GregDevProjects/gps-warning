@@ -9,10 +9,12 @@ import {
   stopAllLocationTasksAsync,
   isBackgroundTasksInProgressAsync,
   isLocationPermissionGiven,
+  getMapPosition,
 } from "../helpers/location";
 
 import MapView from "react-native-maps";
 import { Circle, Marker } from "react-native-maps";
+import Config from "react-native-config";
 
 const GeofenceWatch = ({ style, dangerousLocations }) => {
   const [isWatchingGeoFence, setIsWatchingGeoFence] = useState(false);
@@ -65,7 +67,7 @@ const Map = ({ route, navigation }) => {
   const [pointsOfInterest, setPointsOfInterest] = useState([]);
 
   //TODO: clean up
-  const setInitialPositionAndGetAllDangerousLocations = async () => {
+  const setAllDangerousLocations = async () => {
     const pointsOfInterest = await getAllPointsOfInterest();
     setPointsOfInterest(pointsOfInterest);
 
@@ -79,27 +81,51 @@ const Map = ({ route, navigation }) => {
       });
     });
     setDangerousLocations(allDangerousLocationsForAllPointsOfInterest);
+  };
 
+  const setMapPositionToCurrentLocation = async () => {
     let permissionsGiven = await isLocationPermissionGiven();
 
     if (permissionsGiven) {
       //TODO: error message if permissions not given
-      setInitialPosition(await getCurrentMapPositionAsync());
+      const currentPosition = await getCurrentMapPositionAsync();
+      // return;
+      setInitialPosition(currentPosition);
     }
   };
 
+  //called once when the map is navigated to for the first time
   useEffect(() => {
-    (async () => {
-      const unsubscribe = navigation.addListener("tabPress", async (e) => {
-        // alert("Got data: use effect");
-        //alert(JSON.stringify(route.params));
-      });
-      // alert("Got data: use effect");
+    const unsubscribe = navigation.addListener("tabPress", (e) => {
+      setMapPositionToCurrentLocation();
+    });
 
-      setInitialPositionAndGetAllDangerousLocations();
+    if (!route.params.initialMapLocation) {
+      setMapPositionToCurrentLocation();
       return unsubscribe;
-    })();
+    }
+
+    return unsubscribe;
   }, []);
+
+  //called when the map is navigated to for the first time, and on route changes
+  useEffect(() => {
+    //TODO: figure out best time to update dangerous locations
+    setAllDangerousLocations();
+
+    const { initialMapLocation } = route.params;
+
+    if (!initialMapLocation) {
+      return;
+    }
+
+    const newPosition = getMapPosition(
+      initialMapLocation.latitude,
+      initialMapLocation.longitude
+    );
+
+    setInitialPosition(newPosition);
+  }, [route]);
 
   const styles = StyleSheet.create({
     container: {
@@ -115,7 +141,7 @@ const Map = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <MapView
-        initialRegion={initialPosition}
+        region={initialPosition}
         showsUserLocation={true}
         style={styles.map}
         followsUserLocation={true}

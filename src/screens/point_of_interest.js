@@ -129,7 +129,8 @@ const PointOfInterest = ({ route, navigation }) => {
         <ActionItem icon="attach-money" text="Discounts" noBoarder></ActionItem>
         <ActionItem
           onPress={() => {
-            navigation.navigate("Map", { geoPoint });
+            console.log("SENDING", { initialMapLocation: { ...geoPoint } });
+            navigation.navigate("Map", { initialMapLocation: { ...geoPoint } });
           }}
           icon="location-pin"
           text="View on map"

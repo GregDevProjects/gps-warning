@@ -53,7 +53,7 @@ const List = ({ navigation }) => {
     return (
       <Pressable
         onPress={() => {
-          console.log(item);
+          //console.log(item);
           navigation.navigate("PointOfInterest", item);
         }}
         style={({ pressed }) => [

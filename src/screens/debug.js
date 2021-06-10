@@ -10,11 +10,16 @@ import {
 import regions from "../../test_data/regions";
 import * as TaskManager from "expo-task-manager";
 
+import Config from "react-native-config";
+
 import MapView from "react-native-maps";
 import { Circle } from "react-native-maps";
 import * as Notifications from "expo-notifications";
 
-import { registerForPushNotificationsAsync } from "../helpers/pushNotifications";
+import {
+  sendLocalNotification,
+  registerForPushNotificationsAsync,
+} from "../helpers/pushNotifications";
 
 export default function App() {
   const [location, setLocation] = useState(null);
@@ -24,29 +29,7 @@ export default function App() {
   const [initialPosition, setInitialPosition] = useState(undefined);
 
   useEffect(() => {
-    (async () => {
-      // await registerForPushNotificationsAsync();
-
-      let permissionsGiven = await isLocationPermissionGiven();
-      if (!permissionsGiven) {
-        setErrorMsg("Permission not granted!");
-        return;
-      }
-
-      // const isTaskManagerEnabled = await TaskManager.isAvailableAsync();
-
-      // if (isTaskManagerEnabled) {
-      //   console.log("Task manager enabled, starting geofence");
-      //   //TODO: TEST IF WE CAN REMOVE THIS
-      //   const unregisterAllTasks = await TaskManager.unregisterAllTasksAsync();
-
-      //   console.log(`UNREGESTERED: ${unregisterAllTasks}`);
-
-      //   startGeofencingTask(regions);
-
-      //   setInitialPosition(await getCurrentMapPositionAsync());
-      // }
-    })();
+    (async () => {})();
   }, []);
 
   let text = "Waiting..";
@@ -71,41 +54,37 @@ export default function App() {
       <Text style={styles.paragraph}>{tasks}</Text>
       <Button
         onPress={async () => {
-          const isGeoFencing = await Location.hasStartedGeofencingAsync(
-            "IN_GEOFENCE"
-          );
-
-          if (isGeoFencing) {
-            setButtonText("Working");
-
-            const tasks = await TaskManager.getRegisteredTasksAsync();
-            setTasks(JSON.stringify(tasks));
+          let permissionsGiven = await isLocationPermissionGiven();
+          if (!permissionsGiven) {
+            setErrorMsg("Permission not granted!");
             return;
           }
-
-          setButtonText("Error");
         }}
-        title={buttonText}
+        title={"Request ForeGround Permission"}
         color="#841584"
         accessibilityLabel="Learn more about this purple button"
       />
-      <MapView
-        initialRegion={initialPosition}
-        showsUserLocation={true}
-        style={styles.map}
-        followsUserLocation={true}
-      >
-        {regions.map((region, index) => (
-          <Circle
-            key={index}
-            center={{
-              latitude: region.latitude,
-              longitude: region.longitude,
-            }}
-            radius={region.radius}
-          ></Circle>
-        ))}
-      </MapView>
+      <Button
+        onPress={async () => {
+          const statusBackground = await Location.requestBackgroundPermissionsAsync();
+
+          if (statusBackground.status !== "granted") {
+            return false;
+          }
+        }}
+        title={"Request Background Permission"}
+        color="#841584"
+        accessibilityLabel="Learn more about this purple button"
+      />
+      <Button
+        onPress={async () => {
+          await registerForPushNotificationsAsync();
+          sendLocalNotification({ title: "test title" });
+        }}
+        title={"Send a push"}
+        color="#841584"
+        accessibilityLabel="Learn more about this purple button"
+      />
     </View>
   );
 }

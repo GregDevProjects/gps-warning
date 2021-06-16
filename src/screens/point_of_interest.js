@@ -1,14 +1,8 @@
 import React, { useEffect, useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  FlatList,
-  Pressable,
-  ScrollView,
-} from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import { StyleSheet, Text, Image, FlatList, Pressable } from "react-native";
+import ActionItem from "../components/ActionItem";
+import ImageCardScreen from "../components/ImageCardScreen";
+
 const styles = StyleSheet.create({
   container: {
     padding: 20,
@@ -56,20 +50,6 @@ const PointOfInterest = ({ route, navigation }) => {
     geoPoint,
   } = route.params;
 
-  const Hero = () => (
-    <View>
-      <Image
-        style={styles.logoImage}
-        source={{
-          uri: image,
-        }}
-      />
-      <Text style={styles.logoText}>{name}</Text>
-    </View>
-  );
-
-  const Body = ({ children }) => <View style={styles.body}>{children}</View>;
-
   const DangerousLocations = () => (
     <>
       <Text
@@ -86,10 +66,12 @@ const PointOfInterest = ({ route, navigation }) => {
         data={dangerousLocations}
         horizontal={true}
         showsHorizontalScrollIndicator={false}
+        style={{ marginRight: -15, marginLeft: -15 }}
         renderItem={({ item, index, separators }) => (
           <Pressable
             style={{
-              marginRight: index !== dangerousLocations.length - 1 ? 10 : 0,
+              marginRight: 10,
+              marginLeft: index === 0 ? 10 : 0,
             }}
             onPress={() => {
               navigation.navigate("DangerousLocation", item);
@@ -128,55 +110,20 @@ const PointOfInterest = ({ route, navigation }) => {
     </>
   );
 
-  const ActionItem = ({ text, onPress, noBoarder, icon }) => {
-    return (
-      <Pressable
-        style={{
-          height: 50,
-          flex: 1,
-          flexDirection: "row",
-          alignItems: "center",
-          borderColor: "grey",
-          borderTopWidth: noBoarder ? 0 : 1,
-        }}
-        onPress={onPress}
-      >
-        <MaterialIcons
-          name={icon}
-          size={24}
-          color="black"
-          style={{ marginRight: 20 }}
-        />
-        <Text>{text}</Text>
-        <MaterialIcons
-          name="chevron-right"
-          size={24}
-          color="black"
-          style={{ marginLeft: "auto" }}
-        />
-      </Pressable>
-    );
-  };
   return (
-    <ScrollView
-      style={{ backgroundColor: "white" }}
-      showsVerticalScrollIndicator={false}
-    >
-      <Hero />
-      <Body>
-        <ActionItem icon="attach-money" text="Discounts" noBoarder></ActionItem>
-        <ActionItem
-          onPress={() => {
-            console.log("SENDING", { initialMapLocation: { ...geoPoint } });
-            navigation.navigate("Map", { initialMapLocation: { ...geoPoint } });
-          }}
-          icon="location-pin"
-          text="View on map"
-        ></ActionItem>
-        <Description />
-        <DangerousLocations />
-      </Body>
-    </ScrollView>
+    <ImageCardScreen name={name} image={image}>
+      <ActionItem icon="attach-money" text="Discounts" noBoarder></ActionItem>
+      <ActionItem
+        onPress={() => {
+          console.log("SENDING", { initialMapLocation: { ...geoPoint } });
+          navigation.navigate("Map", { initialMapLocation: { ...geoPoint } });
+        }}
+        icon="location-pin"
+        text="View on map"
+      />
+      <Description />
+      <DangerousLocations />
+    </ImageCardScreen>
   );
 };
 

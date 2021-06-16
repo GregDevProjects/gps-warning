@@ -22,6 +22,10 @@ const PointOfInterestStack = () => (
       name="PointOfInterest"
       component={PointOfInterestScreen}
     />
+    <RootStack.Screen
+      name="DangerousLocation"
+      component={DangerousLocationScreen}
+    />
   </RootStack.Navigator>
 );
 

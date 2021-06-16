@@ -56,26 +56,6 @@ const PointOfInterest = ({ route, navigation }) => {
     geoPoint,
   } = route.params;
 
-  const renderListItem = ({ item }) => {
-    return (
-      <Pressable
-        style={{}}
-        onPress={() => {
-          console.log(item);
-          navigation.navigate("DangerousLocation", item);
-        }}
-        style={({ pressed }) => [
-          {
-            backgroundColor: pressed ? "rgb(210, 230, 255)" : "white",
-            marginTop: 20,
-          },
-        ]}
-      >
-        {({ pressed }) => <Text style={styles.item}>{item.name}</Text>}
-      </Pressable>
-    );
-  };
-
   const Hero = () => (
     <View>
       <Image
@@ -89,6 +69,64 @@ const PointOfInterest = ({ route, navigation }) => {
   );
 
   const Body = ({ children }) => <View style={styles.body}>{children}</View>;
+
+  const DangerousLocations = () => (
+    <>
+      <Text
+        style={{
+          fontSize: 30,
+          color: "black",
+          marginTop: 20,
+          marginBottom: 10,
+        }}
+      >
+        Dangers
+      </Text>
+      <FlatList
+        data={dangerousLocations}
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+        renderItem={({ item, index, separators }) => (
+          <Pressable
+            style={{
+              marginRight: index !== dangerousLocations.length - 1 ? 10 : 0,
+            }}
+            onPress={() => {
+              navigation.navigate("DangerousLocation", item);
+            }}
+          >
+            <Image
+              style={{
+                borderRadius: 25,
+                width: 150,
+                aspectRatio: 1,
+              }}
+              source={{ uri: item.image }}
+            ></Image>
+            <Text style={{ paddingLeft: 10, paddingTop: 10, width: 150 }}>
+              {item.name}
+            </Text>
+          </Pressable>
+        )}
+      />
+    </>
+  );
+
+  const Description = () => (
+    <>
+      <Text
+        style={{
+          fontSize: 30,
+          color: "black",
+          marginTop: 20,
+          marginBottom: 10,
+        }}
+      >
+        About{" "}
+      </Text>
+      <Text style={{ marginBottom: 20 }}>{description}</Text>
+    </>
+  );
 
   const ActionItem = ({ text, onPress, noBoarder, icon }) => {
     return (
@@ -135,18 +173,8 @@ const PointOfInterest = ({ route, navigation }) => {
           icon="location-pin"
           text="View on map"
         ></ActionItem>
-        <ActionItem icon="dangerous" text="Dangers"></ActionItem>
-        <Text
-          style={{
-            fontSize: 30,
-            color: "black",
-            marginTop: 20,
-            marginBottom: 10,
-          }}
-        >
-          About{" "}
-        </Text>
-        <Text style={{ marginBottom: 20 }}>{description}</Text>
+        <Description />
+        <DangerousLocations />
       </Body>
     </ScrollView>
   );

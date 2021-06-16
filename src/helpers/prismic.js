@@ -30,6 +30,7 @@ const parseData = (pointsOfInterestPrismic) => {
         radius: slice.primary.radius,
         latitude: slice.primary.geopoint.latitude,
         longitude: slice.primary.geopoint.longitude,
+        image: slice.primary.dangerous_image.url,
       };
     });
 

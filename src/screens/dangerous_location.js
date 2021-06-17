@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
   },
 });
 const DangerousLocation = ({ route, navigation }) => {
-  console.log(route);
+  // console.log(route);
   useEffect(() => {
     (async () => {
       // const test = await fetchData(route.params.id);

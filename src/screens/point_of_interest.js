@@ -122,7 +122,7 @@ const PointOfInterest = ({ route, navigation }) => {
         text="View on map"
       />
       <Description />
-      <DangerousLocations />
+      {dangerousLocations.length > 0 && <DangerousLocations />}
     </ImageCardScreen>
   );
 };

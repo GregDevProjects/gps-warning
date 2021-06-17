@@ -7,13 +7,19 @@ import {
   Pressable,
   Image,
 } from "react-native";
-import { getAllPointsOfInterest } from "../helpers/prismic";
+import {
+  getAllPointsOfInterest,
+  getAllFilters,
+  getPointsOfInterestByFilter,
+} from "../helpers/prismic";
+import BouncyCheckbox from "react-native-bouncy-checkbox/lib/BouncyCheckbox";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     // paddingTop: 22,
-    flexDirection: "row",
+    flexDirection: "column",
+    backgroundColor: "white",
   },
   text: {
     padding: 10,
@@ -24,21 +30,42 @@ const styles = StyleSheet.create({
 
 const List = ({ navigation }) => {
   const [pointOfInterests, setPointOfInterests] = useState(null);
+  const [filters, setFilters] = useState([]);
+  const [selectedFilter, setSelectedFilter] = useState(false);
+
+  const setPointsOfInterest = async (filter) => {
+    const allFilters = await getAllFilters();
+    setFilters(allFilters);
+
+    const parsedData = filter
+      ? await getPointsOfInterestByFilter(selectedFilter)
+      : await getAllPointsOfInterest();
+
+    // console.log(selectedFilter);
+    setPointOfInterests(parsedData);
+  };
 
   useEffect(() => {
     (async () => {
       const unsubscribe = navigation
         .dangerouslyGetParent()
         .addListener("tabPress", async (e) => {
-          const parsedData = await getAllPointsOfInterest();
-          setPointOfInterests(parsedData);
+          setPointsOfInterest();
+          setSelectedFilter(false);
         });
 
-      const parsedData = await getAllPointsOfInterest();
-      setPointOfInterests(parsedData);
+      // console.log("useeffect called");
+      setPointsOfInterest();
+
       return unsubscribe;
     })();
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      setPointsOfInterest(selectedFilter);
+    })();
+  }, [selectedFilter]);
 
   const isRightSideItem = (index) => {
     if ((index + 1) % 2 === 0) {
@@ -85,8 +112,26 @@ const List = ({ navigation }) => {
     );
   };
 
+  const renderFilterButtons = () => {};
+
   return (
     <View style={styles.container}>
+      <View>
+        {filters.map((filter, index) => {
+          return (
+            <BouncyCheckbox
+              isChecked={selectedFilter === filter.id}
+              disableBuiltInState={true}
+              key={index}
+              text={filter.name}
+              onPress={(isChecked) => {
+                setSelectedFilter(filter.id);
+              }}
+            />
+          );
+        })}
+      </View>
+
       <FlatList
         numColumns={2}
         horizontal={false}

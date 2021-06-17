@@ -6,7 +6,7 @@ const apiEndpoint = Config.PRISMIC_API_ENDPOINT;
 
 const Client = Prismic.client(apiEndpoint, { accessToken });
 
-const fetchData = async () => {
+const fetchAllPointsOfInterest = async () => {
   const response = await Client.query(
     Prismic.Predicates.at("document.type", "point_of_interest")
   );
@@ -14,12 +14,48 @@ const fetchData = async () => {
   if (response) {
     return response.results;
   }
+  return [];
 };
 
-const parseData = (pointsOfInterestPrismic) => {
+const fetchPointOfInterestsByFilter = async (type) => {
+  const response = await Client.query(
+    Prismic.Predicates.any("my.point_of_interest.type", [type])
+  );
+
+  // at(document.point_of_interest.type, "Hiking");
+
+  if (response) {
+    return response.results;
+  }
+  return [];
+};
+
+const fetchAllFilters = async () => {
+  const response = await Client.query(
+    Prismic.Predicates.at("document.type", "filtertype")
+  );
+
+  if (response) {
+    return response.results;
+  }
+  return [];
+};
+
+const parseAllFilters = async (data) => {
+  return data.map((item) => {
+    // console.log({ name: item.data.filter_name, id: item.id });
+    return { name: item.data.filter_name, id: item.id };
+  });
+};
+
+const parseAllPointsOfInterest = (pointsOfInterestPrismic) => {
   return pointsOfInterestPrismic.map((item) => {
     const dangerousLocationSlices = item.data.body.filter((item) => {
       return item.slice_type === "non_repeatabletest";
+    });
+
+    const filtersParsed = item.data.body1.map((item) => {
+      return { name: item.primary.filter.slug, id: item.primary.filter.id };
     });
 
     const dangerousLocationsParsed = dangerousLocationSlices.map((slice) => {
@@ -41,13 +77,25 @@ const parseData = (pointsOfInterestPrismic) => {
       description: item.data.description[0].text,
       geoPoint: item.data.geopoint,
       dangerousLocations: dangerousLocationsParsed,
+      filters: filtersParsed,
     };
   });
 };
 
 const getAllPointsOfInterest = async () => {
-  const data = await fetchData();
-  return parseData(data);
+  const data = await fetchAllPointsOfInterest();
+  return parseAllPointsOfInterest(data);
 };
 
-export { getAllPointsOfInterest };
+const getPointsOfInterestByFilter = async (filterId) => {
+  const data = await fetchPointOfInterestsByFilter(filterId);
+  // console.log(data);
+  return parseAllPointsOfInterest(data);
+};
+
+const getAllFilters = async () => {
+  const data = await fetchAllFilters();
+  return parseAllFilters(data);
+};
+
+export { getAllPointsOfInterest, getAllFilters, getPointsOfInterestByFilter };

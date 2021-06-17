@@ -1,15 +1,6 @@
-import React, { useEffect, useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  FlatList,
-  Pressable,
-  ScrollView,
-} from "react-native";
+import React from "react";
+import { Text, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import ImageCardScreen from "../components/ImageCardScreen";
 
 const ActionItem = ({ text, onPress, noBoarder, icon }) => {
   return (

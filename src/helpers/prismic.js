@@ -55,18 +55,38 @@ const parseAllPointsOfInterest = (pointsOfInterestPrismic) => {
     });
 
     const filtersParsed = item.data.body1.map((item) => {
+      if (!item.primary.filter) {
+        return;
+      }
       return { name: item.primary.filter.slug, id: item.primary.filter.id };
     });
 
     const dangerousLocationsParsed = dangerousLocationSlices.map((slice) => {
+      let polygon = null;
+      if (slice.primary.dangerous_location_polygon[0]) {
+        const rawText = slice.primary.dangerous_location_polygon[0].text;
+
+        if (rawText) {
+          const parsed = JSON.parse(rawText.replace(`\\`, "").trim());
+
+          polygon = parsed.map((item) => {
+            return {
+              latitude: parseFloat(item.latitude),
+              longitude: parseFloat(item.longitude),
+            };
+          });
+        }
+      }
+
       return {
         key: slice.primary.name1, //TODO: GENERATE UNIQUE KEY
+
         name: slice.primary.name1,
         description: slice.primary.description1[0].text,
         radius: slice.primary.radius,
-        latitude: slice.primary.geopoint.latitude,
-        longitude: slice.primary.geopoint.longitude,
         image: slice.primary.dangerous_image.url,
+        polygon: polygon,
+        notified: false,
       };
     });
 
@@ -76,6 +96,8 @@ const parseAllPointsOfInterest = (pointsOfInterestPrismic) => {
       name: item.data.name,
       description: item.data.description[0].text,
       geoPoint: item.data.geopoint,
+      phone: item.data.phone,
+      website: item.data.website.url,
       dangerousLocations: dangerousLocationsParsed,
       filters: filtersParsed,
     };

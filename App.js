@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import { Text, View } from "react-native";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -9,7 +8,6 @@ import PointOfInterestScreen from "./src/screens/point_of_interest";
 import DangerousLocationScreen from "./src/screens/dangerous_location";
 import { createStackNavigator } from "@react-navigation/stack";
 import MapScreen from "./src/screens/map";
-import * as Notifications from "expo-notifications";
 
 const Tab = createBottomTabNavigator();
 

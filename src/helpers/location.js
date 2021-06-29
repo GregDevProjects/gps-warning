@@ -3,6 +3,8 @@ import { sendLocalNotification } from "./pushNotifications";
 import * as TaskManager from "expo-task-manager";
 import { LocationGeofencingEventType } from "expo-location";
 
+import pointInPolygon from "point-in-polygon";
+
 const GEOFENCE_TASK_NAME = "IN_GEOFENCE";
 const LOCATION_UPDATE_TASK_NAME = "LOCATION_POLL";
 const BACKGROUND_TASK_TITLE = "TAP PROTOTYPE";
@@ -10,6 +12,9 @@ const BACKGROUND_TASK_BODY =
   "Tap prototype is watching for dangerous locations";
 const latitudeDelta = 0.006;
 const longitudeDelta = 0.006;
+
+//used by LOCATION_UPDATE_TASK_NAME
+let dangerousLocationPolygons = [];
 
 TaskManager.defineTask(
   GEOFENCE_TASK_NAME,
@@ -20,11 +25,13 @@ TaskManager.defineTask(
     }
 
     if (eventType === LocationGeofencingEventType.Enter) {
-      console.log(`You've entered region: ${region.identifier}`);
       const content = { title: `You've entered region: ${region.identifier}` };
+      console.log(content);
       sendLocalNotification(content);
     } else if (eventType === LocationGeofencingEventType.Exit) {
-      console.log(`You've left region: ${region.identifier}`);
+      console.log(
+        `You are entering ${region.identifier}, please exercise caution!`
+      );
     }
   }
 );
@@ -36,9 +43,35 @@ TaskManager.defineTask(
       // check `error.message` for more details.
       return;
     }
-    // console.log("Received new locations", locations);
+
+    const { latitude, longitude } = locations[0].coords;
+
+    dangerousLocationPolygons.forEach((point, index, array) => {
+      if (!point.polygon) {
+        return;
+      }
+      const polygon = parsePolygon(point.polygon);
+      const inPolygon = pointInPolygon([latitude, longitude], polygon);
+      if (inPolygon && !point.notified) {
+        const pushContent = {
+          title: `You are entering ${region.identifier}, please exercise caution!`,
+        };
+        sendLocalNotification(pushContent);
+        array[index].notified = true;
+      }
+      if (!inPolygon) {
+        array[index].notified = false;
+      }
+    });
   }
 );
+
+const parsePolygon = (coordsArray) => {
+  const result = coordsArray.map((coords) => {
+    return [coords.latitude, coords.longitude];
+  });
+  return result;
+};
 
 /**
  * requests permissions to retrieve background and foreground location
@@ -65,7 +98,8 @@ const isLocationPermissionGiven = async () => {
  * https://docs.expo.io/versions/latest/sdk/location/#locationstartlocationupdatesasynctaskname-options
  *
  */
-const startLocationUpdatesTask = () => {
+const startLocationUpdatesTask = (polygonArray) => {
+  dangerousLocationPolygons = polygonArray;
   Location.startLocationUpdatesAsync(LOCATION_UPDATE_TASK_NAME, {
     accuracy: Location.LocationAccuracy.BestForNavigation,
     foregroundService: {

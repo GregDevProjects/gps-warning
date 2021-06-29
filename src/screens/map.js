@@ -13,7 +13,7 @@ import {
 } from "../helpers/location";
 
 import MapView from "react-native-maps";
-import { Circle, Marker } from "react-native-maps";
+import { Marker, Polygon } from "react-native-maps";
 import Config from "react-native-config";
 
 const GeofenceWatch = ({ style, dangerousLocations }) => {
@@ -48,9 +48,8 @@ const GeofenceWatch = ({ style, dangerousLocations }) => {
             setIsWatchingGeoFence(false);
             return;
           }
-
-          startGeofencingTask(dangerousLocations);
-          startLocationUpdatesTask();
+          // startGeofencingTask(dangerousLocations);
+          startLocationUpdatesTask(dangerousLocations);
           setIsWatchingGeoFence(true);
         }}
         title={isWatchingGeoFence ? "Stop Watching" : "Start Watching"}
@@ -75,7 +74,6 @@ const Map = ({ route, navigation }) => {
 
     pointsOfInterest.forEach((item) => {
       item.dangerousLocations.forEach((dangerousLocation) => {
-        dangerousLocation.notifyOnEnter = true;
         dangerousLocation.identifier = dangerousLocation.name;
         allDangerousLocationsForAllPointsOfInterest.push(dangerousLocation);
       });
@@ -144,29 +142,17 @@ const Map = ({ route, navigation }) => {
         region={initialPosition}
         showsUserLocation={true}
         style={styles.map}
-        followsUserLocation={true}
       >
         {dangerousLocations.map((item, index) => {
-          return (
-            <Circle
-              key={index}
-              fillColor={"rgba(255,204,203,0.5)"}
-              strokeColor={"rgb(255,0,0)"}
-              center={{
-                latitude: item.latitude,
-                longitude: item.longitude,
-              }}
-              radius={item.radius}
-            ></Circle>
-          );
-        })}
-        {dangerousLocations.map((item, index) => {
+          if (!item.polygon) {
+            return;
+          }
           return (
             <Marker
               key={index}
               coordinate={{
-                latitude: item.latitude,
-                longitude: item.longitude,
+                latitude: item.polygon[0].latitude,
+                longitude: item.polygon[0].longitude,
               }}
               onPress={() => {
                 navigation.navigate("DangerousLocation", item);
@@ -192,6 +178,19 @@ const Map = ({ route, navigation }) => {
                 <Text style={{ color: "black" }}>{item.name}</Text>
               </View>
             </Marker>
+          );
+        })}
+        {dangerousLocations.map((item, index) => {
+          if (!item.polygon) {
+            return;
+          }
+          return (
+            <Polygon
+              key={index}
+              fillColor={"rgba(255,204,203,0.5)"}
+              coordinates={item.polygon}
+              strokeColor={"rgb(255,0,0)"}
+            />
           );
         })}
       </MapView>

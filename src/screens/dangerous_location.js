@@ -28,8 +28,8 @@ const DangerousLocation = ({ route, navigation }) => {
     })();
   }, []);
 
-  const { name, description, image, latitude, longitude } = route.params;
-
+  const { name, description, image, polygon } = route.params;
+  const { latitude, longitude } = polygon[0];
   return (
     <ImageCardScreen name={name} image={image}>
       <ActionItem

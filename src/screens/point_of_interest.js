@@ -1,33 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, Image, FlatList, Pressable } from "react-native";
+import { Linking, Text, Image, FlatList, Pressable } from "react-native";
 import ActionItem from "../components/ActionItem";
 import ImageCardScreen from "../components/ImageCardScreen";
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-  },
-  logoImage: {
-    width: "100%",
-    aspectRatio: 1,
-  },
-  logoText: {
-    fontSize: 50,
-    position: "absolute",
-    bottom: 20,
-    color: "white",
-    left: 15,
-  },
-  body: {
-    backgroundColor: "white",
-    borderRadius: 15,
-    position: "relative",
-    bottom: 20,
-    paddingTop: 5,
-    paddingLeft: 15,
-    paddingRight: 15,
-  },
-});
 
 const PointOfInterest = ({ route, navigation }) => {
   const [pointOfInterests, setPointOfInterests] = useState(null);
@@ -48,6 +22,8 @@ const PointOfInterest = ({ route, navigation }) => {
     description,
     dangerousLocations,
     geoPoint,
+    phone,
+    website,
   } = route.params;
 
   const DangerousLocations = () => (
@@ -60,7 +36,7 @@ const PointOfInterest = ({ route, navigation }) => {
           marginBottom: 10,
         }}
       >
-        Dangers
+        Hazards
       </Text>
       <FlatList
         data={dangerousLocations}
@@ -112,7 +88,21 @@ const PointOfInterest = ({ route, navigation }) => {
 
   return (
     <ImageCardScreen name={name} image={image}>
-      <ActionItem icon="attach-money" text="Discounts" noBoarder></ActionItem>
+      <ActionItem
+        icon="call"
+        text="Phone"
+        noBoarder
+        onPress={() => {
+          Linking.openURL(`tel:${phone}`);
+        }}
+      ></ActionItem>
+      <ActionItem
+        icon="public"
+        text="Website"
+        onPress={() => {
+          Linking.openURL(website);
+        }}
+      ></ActionItem>
       <ActionItem
         onPress={() => {
           console.log("SENDING", { initialMapLocation: { ...geoPoint } });

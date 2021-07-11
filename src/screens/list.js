@@ -13,6 +13,11 @@ import {
   getPointsOfInterestByFilter,
 } from "../helpers/prismic";
 import BouncyCheckbox from "react-native-bouncy-checkbox/lib/BouncyCheckbox";
+import Distance from "../helpers/distanceAsCrowFlies";
+import {
+  getCurrentMapPositionAsync,
+  isLocationPermissionGiven,
+} from "../helpers/location";
 
 const styles = StyleSheet.create({
   container: {
@@ -21,9 +26,21 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     backgroundColor: "white",
   },
+  textDistance: {
+    padding: 10,
+    fontSize: 18,
+    color: "white",
+    position: "absolute",
+    bottom: 0,
+    marginLeft: 10,
+  },
   text: {
     padding: 10,
     fontSize: 18,
+    position: "absolute",
+    color: "white",
+    marginLeft: 10,
+    marginTop: 5,
     // marginLeft: 5,
   },
 });
@@ -33,7 +50,9 @@ const List = ({ navigation }) => {
   const [filters, setFilters] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState(false);
 
-  const setPointsOfInterest = async (filter) => {
+  //retrieves all points of interest and filters from Prismic
+  // assigns them to state variables on retireval
+  const retrieveFiltersAndPointsOfInterest = async (filter) => {
     const allFilters = await getAllFilters();
     setFilters(allFilters);
 
@@ -41,8 +60,28 @@ const List = ({ navigation }) => {
       ? await getPointsOfInterestByFilter(selectedFilter)
       : await getAllPointsOfInterest();
 
-    // console.log(selectedFilter);
     setPointOfInterests(parsedData);
+    addDistance(parsedData);
+  };
+
+  //Get current location and assign distance to the points of interest array
+  const addDistance = async (parsedData) => {
+    let permissionsGiven = await isLocationPermissionGiven();
+    if (permissionsGiven) {
+      const clientLocation = await getCurrentMapPositionAsync();
+
+      const pointsOfInterestWithDiestance = parsedData.map((location) => {
+        const lat1 = location.geoPoint.latitude;
+        const long1 = location.geoPoint.longitude;
+        const lat2 = clientLocation.latitude;
+        const long2 = clientLocation.longitude;
+        const distanceKm = Distance(lat1, long1, lat2, long2);
+        location.distanceKm = distanceKm.toFixed(2) + " Km";
+        return location;
+      });
+
+      setPointOfInterests(pointsOfInterestWithDiestance);
+    }
   };
 
   useEffect(() => {
@@ -50,12 +89,12 @@ const List = ({ navigation }) => {
       const unsubscribe = navigation
         .dangerouslyGetParent()
         .addListener("tabPress", async (e) => {
-          setPointsOfInterest();
+          //when this page is navigated to via tab
+          retrieveFiltersAndPointsOfInterest();
           setSelectedFilter(false);
         });
 
-      // console.log("useeffect called");
-      setPointsOfInterest();
+      retrieveFiltersAndPointsOfInterest();
 
       return unsubscribe;
     })();
@@ -63,7 +102,7 @@ const List = ({ navigation }) => {
 
   useEffect(() => {
     (async () => {
-      setPointsOfInterest(selectedFilter);
+      retrieveFiltersAndPointsOfInterest(selectedFilter);
     })();
   }, [selectedFilter]);
 
@@ -80,12 +119,10 @@ const List = ({ navigation }) => {
     return (
       <Pressable
         onPress={() => {
-          //console.log(item);
           navigation.navigate("PointOfInterest", item);
         }}
         style={({ pressed }) => [
           {
-            backgroundColor: pressed ? "rgb(210, 230, 255)" : "white",
             width: "50%",
             paddingRight: rightSide ? 10 : 5,
             paddingLeft: rightSide ? 5 : 10,
@@ -106,13 +143,14 @@ const List = ({ navigation }) => {
               source={{ uri: item.image }}
             ></Image>
             <Text style={styles.text}>{item.name}</Text>
+            {item.distanceKm && (
+              <Text style={styles.textDistance}>{item.distanceKm}</Text>
+            )}
           </>
         )}
       </Pressable>
     );
   };
-
-  const renderFilterButtons = () => {};
 
   return (
     <View style={styles.container}>

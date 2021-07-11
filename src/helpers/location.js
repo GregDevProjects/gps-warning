@@ -112,8 +112,11 @@ const startLocationUpdatesTask = (polygonArray) => {
 const startGeofencingTask = (regions) =>
   Location.startGeofencingAsync(GEOFENCE_TASK_NAME, regions);
 
+//TODO: add permission check to this and all location calls
 const getCurrentMapPositionAsync = async () => {
-  const location = await Location.getCurrentPositionAsync();
+  const location = await Location.getCurrentPositionAsync({
+    accuracy: Location.LocationAccuracy.Highest,
+  });
 
   return getMapPosition(location.coords.latitude, location.coords.longitude);
 };

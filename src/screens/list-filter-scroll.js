@@ -6,6 +6,7 @@ import {
   View,
   Pressable,
   Image,
+  ScrollView,
 } from "react-native";
 import {
   getAllPointsOfInterest,
@@ -43,6 +44,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
     // marginLeft: 5,
   },
+  textFilter: { fontSize: 30, color: "black", marginLeft: 15, marginTop: 7 }, //TODO: spacing should be handled by a scroll container
 });
 
 const List = ({ navigation }) => {
@@ -76,7 +78,7 @@ const List = ({ navigation }) => {
         const lat2 = clientLocation.latitude;
         const long2 = clientLocation.longitude;
         const distanceKm = Distance(lat1, long1, lat2, long2);
-        location.distanceKm = distanceKm.toFixed(2) + " Km";
+        location.distanceKm = distanceKm;
         return location;
       });
 
@@ -123,7 +125,7 @@ const List = ({ navigation }) => {
         }}
         style={({ pressed }) => [
           {
-            width: "50%",
+            // width: "50%",
             paddingRight: rightSide ? 10 : 5,
             paddingLeft: rightSide ? 5 : 10,
           },
@@ -132,11 +134,10 @@ const List = ({ navigation }) => {
         {({ pressed }) => (
           <>
             <Image
-              width={"100%"}
-              height={50}
               style={{
                 borderRadius: 25,
-                width: "100%",
+                width: 200,
+                height: 200,
                 marginTop: 10,
                 aspectRatio: 1,
               }}
@@ -144,7 +145,9 @@ const List = ({ navigation }) => {
             ></Image>
             <Text style={styles.text}>{item.name}</Text>
             {item.distanceKm && (
-              <Text style={styles.textDistance}>{item.distanceKm}</Text>
+              <Text style={styles.textDistance}>
+                {item.distanceKm.toFixed(2) + " Km"}
+              </Text>
             )}
           </>
         )}
@@ -153,30 +156,52 @@ const List = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView bounces style={styles.container}>
       <View>
         {filters.map((filter, index) => {
+          if (!pointOfInterests) {
+            return;
+          }
+
+          const pointsOfInterestForFilter = pointOfInterests.filter((point) => {
+            return point.filterId === filter.id;
+          });
+
+          if (pointsOfInterestForFilter.length === 0) {
+            return <></>;
+          }
+
+          let pointsOfInterestWithDistanceSorted = false;
+
+          if (pointsOfInterestForFilter[0].distanceKm) {
+            pointsOfInterestWithDistanceSorted = pointsOfInterestForFilter.sort(
+              (el1, el2) => {
+                return el1.distanceKm - el2.distanceKm;
+              }
+            );
+          }
+
           return (
-            <BouncyCheckbox
-              isChecked={selectedFilter === filter.id}
-              disableBuiltInState={true}
-              key={index}
-              text={filter.name}
-              onPress={(isChecked) => {
-                setSelectedFilter(filter.id);
-              }}
-            />
+            <>
+              <Text key={index} style={styles.textFilter}>
+                {filter.name}
+              </Text>
+              <FlatList
+                key={index + 100}
+                showsHorizontalScrollIndicator={false}
+                horizontal={true}
+                data={
+                  pointsOfInterestWithDistanceSorted
+                    ? pointsOfInterestWithDistanceSorted
+                    : pointsOfInterestForFilter
+                }
+                renderItem={renderListItem}
+              />
+            </>
           );
         })}
       </View>
-
-      <FlatList
-        numColumns={2}
-        horizontal={false}
-        data={pointOfInterests}
-        renderItem={renderListItem}
-      />
-    </View>
+    </ScrollView>
   );
 };
 

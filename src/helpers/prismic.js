@@ -54,13 +54,6 @@ const parseAllPointsOfInterest = (pointsOfInterestPrismic) => {
       return item.slice_type === "non_repeatabletest";
     });
 
-    const filtersParsed = item.data.body1.map((item) => {
-      if (!item.primary.filter) {
-        return;
-      }
-      return { name: item.primary.filter.slug, id: item.primary.filter.id };
-    });
-
     const dangerousLocationsParsed = dangerousLocationSlices.map((slice) => {
       let polygon = null;
       if (slice.primary.dangerous_location_polygon[0]) {
@@ -99,13 +92,16 @@ const parseAllPointsOfInterest = (pointsOfInterestPrismic) => {
       phone: item.data.phone,
       website: item.data.website.url,
       dangerousLocations: dangerousLocationsParsed,
-      filters: filtersParsed,
+      filterId: item.data.type.id,
     };
   });
 };
 
 const getAllPointsOfInterest = async () => {
   const data = await fetchAllPointsOfInterest();
+
+  // console.log(data[3].data.type);
+
   return parseAllPointsOfInterest(data);
 };
 

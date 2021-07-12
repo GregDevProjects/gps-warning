@@ -26,7 +26,6 @@ TaskManager.defineTask(
 
     if (eventType === LocationGeofencingEventType.Enter) {
       const content = { title: `You've entered region: ${region.identifier}` };
-      console.log(content);
       sendLocalNotification(content);
     } else if (eventType === LocationGeofencingEventType.Exit) {
       console.log(

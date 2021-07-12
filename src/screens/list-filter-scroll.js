@@ -159,6 +159,7 @@ const List = ({ navigation }) => {
     <ScrollView bounces style={styles.container}>
       <View>
         {filters.map((filter, index) => {
+          //TODO: refactor
           if (!pointOfInterests) {
             return;
           }

@@ -6,6 +6,7 @@ import {
   View,
   Pressable,
   Image,
+  ScrollView,
 } from "react-native";
 import {
   getAllPointsOfInterest,
@@ -41,9 +42,31 @@ const styles = StyleSheet.create({
     color: "white",
     marginLeft: 10,
     marginTop: 5,
-    // marginLeft: 5,
   },
 });
+
+//TODO: BUG!!! switching filters quickly causes crash
+//
+const FilterButton = ({ text, isSelected, onPress }) => {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        {
+          borderStyle: "solid",
+          borderColor: isSelected ? "#1E90FF" : "grey",
+          borderWidth: 1,
+          borderRadius: 15,
+          padding: 10,
+          margin: 10,
+          backgroundColor: isSelected ? "#1E90FF" : "white",
+        },
+      ]}
+    >
+      <Text style={{ color: isSelected ? "white" : "black" }}>{text}</Text>
+    </Pressable>
+  );
+};
 
 const List = ({ navigation }) => {
   const [pointOfInterests, setPointOfInterests] = useState(null);
@@ -76,11 +99,17 @@ const List = ({ navigation }) => {
         const lat2 = clientLocation.latitude;
         const long2 = clientLocation.longitude;
         const distanceKm = Distance(lat1, long1, lat2, long2);
-        location.distanceKm = distanceKm.toFixed(2) + " Km";
+        location.distanceKm = distanceKm;
         return location;
       });
 
-      setPointOfInterests(pointsOfInterestWithDistance);
+      const pointsOfInterestWithDistanceSorted = pointsOfInterestWithDistance.sort(
+        (el1, el2) => {
+          return el1.distanceKm - el2.distanceKm;
+        }
+      );
+
+      setPointOfInterests(pointsOfInterestWithDistanceSorted);
     }
   };
 
@@ -144,7 +173,9 @@ const List = ({ navigation }) => {
             ></Image>
             <Text style={styles.text}>{item.name}</Text>
             {item.distanceKm && (
-              <Text style={styles.textDistance}>{item.distanceKm}</Text>
+              <Text style={styles.textDistance}>
+                {item.distanceKm.toFixed(2) + " Km"}
+              </Text>
             )}
           </>
         )}
@@ -154,22 +185,24 @@ const List = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ display: "flex", flexDirection: "row", maxHeight: 65 }}
+      >
         {filters.map((filter, index) => {
           return (
-            <BouncyCheckbox
-              isChecked={selectedFilter === filter.id}
-              disableBuiltInState={true}
+            <FilterButton
               key={index}
               text={filter.name}
-              onPress={(isChecked) => {
+              isSelected={selectedFilter === filter.id}
+              onPress={() => {
                 setSelectedFilter(filter.id);
               }}
-            />
+            ></FilterButton>
           );
         })}
-      </View>
-
+      </ScrollView>
       <FlatList
         numColumns={2}
         horizontal={false}
